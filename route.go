@@ -12,9 +12,6 @@ var (
 	repo = repository.NewEmployeeRepository()
 )
 
-func init() {
-
-}
 func getEmployees(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	employees, err := repo.FindAll()
@@ -26,6 +23,7 @@ func getEmployees(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(employees)
 }
+
 func addEmployee(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	var employee entity.Employee
@@ -44,5 +42,4 @@ func addEmployee(writer http.ResponseWriter, request *http.Request) {
 	}
 	writer.WriteHeader(http.StatusCreated)
 	json.NewEncoder(writer).Encode(employee)
-
 }

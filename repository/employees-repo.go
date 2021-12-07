@@ -31,9 +31,7 @@ func (*repo) Save(employee *entity.Employee) error {
 		log.Printf("Failed to create a Firestore client: %v", err)
 		return err
 	}
-
 	defer client.Close()
-
 	_, _, err = client.Collection(collectionName).Add(ctx, map[string]interface{}{
 		"Id":    employee.Id,
 		"Name":  employee.Name,
@@ -41,7 +39,6 @@ func (*repo) Save(employee *entity.Employee) error {
 		"Team":  employee.Team,
 		"Email": employee.Email,
 	})
-
 	if err != nil {
 		log.Printf("Failed to add new employee: %v", err)
 	}
@@ -64,7 +61,6 @@ func (*repo) FindAll() ([]entity.Employee, error) {
 		return nil, err
 	}
 	for _, doc := range docs {
-
 		employee := entity.Employee{
 			Id:    doc.Data()["Id"].(int64),
 			Name:  doc.Data()["Name"].(string),
