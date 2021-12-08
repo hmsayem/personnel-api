@@ -1,21 +1,24 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"log"
-	"net/http"
-	"os"
+	"github.com/hmsayem/employee-server/controller"
+	"github.com/hmsayem/employee-server/repository"
+	"github.com/hmsayem/employee-server/router"
+	"github.com/hmsayem/employee-server/service"
+)
+
+var (
+	fireRepo           = repository.NewFirestoreRepository()
+	employeeService    = service.NewEmployeeService(fireRepo)
+	employeeController = controller.NewEmployeeController(employeeService)
+	httpRouter         = router.NewMuxRouter()
 )
 
 func main() {
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "/home/sayem/Downloads/firebase/employee-server.json")
-	router := mux.NewRouter()
+
 	const port string = ":8000"
-	router.HandleFunc("/employees", getEmployees).Methods("GET")
-	router.HandleFunc("/employees", addEmployee).Methods("POST")
-	log.Println("Server listening on port", port)
-	err := http.ListenAndServe(port, router)
-	if err != nil {
-		return
-	}
+
+	httpRouter.GET("/employees", employeeController.GetEmployees)
+	httpRouter.POST("/employees", employeeController.AddEmployee)
+	httpRouter.SERVE(port)
 }
