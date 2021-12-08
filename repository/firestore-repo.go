@@ -3,8 +3,8 @@ package repository
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"fmt"
 	"github.com/hmsayem/employee-server/entity"
-	"log"
 )
 
 const (
@@ -23,8 +23,7 @@ func (*firestoreRepo) Save(employee *entity.Employee) error {
 	ctx := context.Background()
 	client, err := firestore.NewClient(ctx, projectId)
 	if err != nil {
-		log.Printf("Failed to create Firestore client: %v", err)
-		return err
+		return fmt.Errorf("creating firestore client failed: %v", err)
 	}
 	defer client.Close()
 	_, _, err = client.Collection(collectionName).Add(ctx, map[string]interface{}{
@@ -35,8 +34,7 @@ func (*firestoreRepo) Save(employee *entity.Employee) error {
 		"Email": employee.Email,
 	})
 	if err != nil {
-		log.Printf("Failed to add new employee: %v", err)
-		return err
+		return fmt.Errorf("creating firestore document failed: %v", err)
 	}
 	return nil
 }
@@ -45,16 +43,14 @@ func (*firestoreRepo) FindAll() ([]entity.Employee, error) {
 	ctx := context.Background()
 	client, err := firestore.NewClient(ctx, projectId)
 	if err != nil {
-		log.Printf("Failed to create Firestore client: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("creating firestore client failed: %v", err)
 	}
 	defer client.Close()
 	var employees []entity.Employee
 	iterator := client.Collection(collectionName).Documents(ctx)
 	docs, err := iterator.GetAll()
 	if err != nil {
-		log.Printf("Failed to get the employee list: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("iterating firestore documents failed: %v", err)
 	}
 	for _, doc := range docs {
 		employee := entity.Employee{
