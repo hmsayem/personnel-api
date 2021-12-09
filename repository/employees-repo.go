@@ -6,5 +6,5 @@ import (
 
 type EmployeeRepository interface {
 	Save(employee *entity.Employee) error
-	FindAll() ([]entity.Employee, error)
+	GetAll() ([]entity.Employee, error)
 }

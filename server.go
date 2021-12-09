@@ -5,6 +5,7 @@ import (
 	"github.com/hmsayem/employee-server/repository"
 	"github.com/hmsayem/employee-server/router"
 	"github.com/hmsayem/employee-server/service"
+	"os"
 )
 
 var (
@@ -15,10 +16,7 @@ var (
 )
 
 func main() {
-
-	const port string = ":8000"
-
-	httpRouter.GET("/employees", employeeController.GetEmployees)
-	httpRouter.POST("/employees", employeeController.AddEmployee)
-	httpRouter.SERVE(port)
+	httpRouter.Get("/employees", employeeController.GetEmployees)
+	httpRouter.Post("/employees", employeeController.AddEmployee)
+	httpRouter.Serve(os.Getenv("SERVER_PORT"))
 }

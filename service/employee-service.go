@@ -10,14 +10,13 @@ import (
 type EmployeeService interface {
 	Validate(employee *entity.Employee) error
 	Create(employee *entity.Employee) error
-	FindAll() ([]entity.Employee, error)
+	GetAll() ([]entity.Employee, error)
 }
 
 type service struct{}
 
 var (
 	employeeRepo repository.EmployeeRepository
-	//repo = repository.NewFirestoreRepository()
 )
 
 func NewEmployeeService(repo repository.EmployeeRepository) EmployeeService {
@@ -38,6 +37,6 @@ func (*service) Create(employee *entity.Employee) error {
 	return employeeRepo.Save(employee)
 }
 
-func (*service) FindAll() ([]entity.Employee, error) {
-	return employeeRepo.FindAll()
+func (*service) GetAll() ([]entity.Employee, error) {
+	return employeeRepo.GetAll()
 }

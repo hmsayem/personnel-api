@@ -12,8 +12,7 @@ const (
 	collectionName = "employees"
 )
 
-type firestoreRepo struct {
-}
+type firestoreRepo struct{}
 
 func NewFirestoreRepository() EmployeeRepository {
 	return &firestoreRepo{}
@@ -39,7 +38,7 @@ func (*firestoreRepo) Save(employee *entity.Employee) error {
 	return nil
 }
 
-func (*firestoreRepo) FindAll() ([]entity.Employee, error) {
+func (*firestoreRepo) GetAll() ([]entity.Employee, error) {
 	ctx := context.Background()
 	client, err := firestore.NewClient(ctx, projectId)
 	if err != nil {

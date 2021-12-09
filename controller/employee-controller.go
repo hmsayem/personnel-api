@@ -27,7 +27,7 @@ func NewEmployeeController(service service.EmployeeService) EmployeeController {
 
 func (*controller) GetEmployees(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
-	employees, err := employeeService.FindAll()
+	employees, err := employeeService.GetAll()
 	if err != nil {
 		log.Printf("getting employees failed: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)
