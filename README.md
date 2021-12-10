@@ -51,12 +51,12 @@ Start the server.
 
 ### Docker
 
-Build image
+Build image.
 
 ```bash
 docker build -t employee-server .
 ```
-Run container
+Run container.
 
 ```bash
  docker run  --mount type=bind,source=/path/to/project-private-key.json,target=/run/secrets/employee-server-key.json,readonly -p 8000:8000 employee-server

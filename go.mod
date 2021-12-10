@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	cloud.google.com/go/firestore v1.6.1
+	github.com/go-chi/chi v1.5.4
 	github.com/gorilla/mux v1.8.0
 )
 

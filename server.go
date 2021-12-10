@@ -12,7 +12,7 @@ var (
 	fireRepo           = repository.NewFirestoreRepository()
 	employeeService    = service.NewEmployeeService(fireRepo)
 	employeeController = controller.NewEmployeeController(employeeService)
-	httpRouter         = router.NewMuxRouter()
+	httpRouter         = router.NewChiRouter()
 )
 
 func main() {
