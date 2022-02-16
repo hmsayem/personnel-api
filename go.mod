@@ -1,4 +1,4 @@
-module github.com/hmsayem/employee-server
+module github.com/hmsayem/clean-architecture-implementation
 
 go 1.17
 
@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/firestore v1.6.1
 	github.com/go-chi/chi v1.5.4
 	github.com/gorilla/mux v1.8.0
+	github.com/hmsayem/employee-server v0.0.0-20220216043921-1cb7ada16bb7
 )
 
 require (

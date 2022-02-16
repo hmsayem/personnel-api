@@ -14,8 +14,8 @@ COPY . .
 
 ENV SERVER_PORT=:8000
 
-ENV GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/employee-server-key.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/server-key.json
 
-RUN go build
+RUN go build -o rest-server
 
-CMD ["./employee-server"]
+CMD ["./rest-server"]
