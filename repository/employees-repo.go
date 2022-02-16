@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/hmsayem/employee-server/entity"
+	"github.com/hmsayem/clean-architecture-implementation/entity"
 )
 
 type EmployeeRepository interface {

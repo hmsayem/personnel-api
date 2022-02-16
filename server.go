@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/hmsayem/employee-server/controller"
-	"github.com/hmsayem/employee-server/repository"
-	"github.com/hmsayem/employee-server/router"
-	"github.com/hmsayem/employee-server/service"
+	"github.com/hmsayem/clean-architecture-implementation/controller"
+	"github.com/hmsayem/clean-architecture-implementation/repository"
+	"github.com/hmsayem/clean-architecture-implementation/router"
+	"github.com/hmsayem/clean-architecture-implementation/service"
 	"os"
 )
 

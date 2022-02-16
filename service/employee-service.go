@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"github.com/hmsayem/employee-server/entity"
-	"github.com/hmsayem/employee-server/repository"
+	"github.com/hmsayem/clean-architecture-implementation/entity"
+	"github.com/hmsayem/clean-architecture-implementation/repository"
 	"math/rand"
 )
 

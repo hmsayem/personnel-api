@@ -4,7 +4,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
-	"github.com/hmsayem/employee-server/entity"
+	"github.com/hmsayem/clean-architecture-implementation/entity"
 )
 
 const (

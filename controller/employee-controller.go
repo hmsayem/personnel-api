@@ -2,9 +2,9 @@ package controller
 
 import (
 	"encoding/json"
-	"github.com/hmsayem/employee-server/entity"
-	"github.com/hmsayem/employee-server/errors"
-	"github.com/hmsayem/employee-server/service"
+	"github.com/hmsayem/clean-architecture-implementation/entity"
+	"github.com/hmsayem/clean-architecture-implementation/errors"
+	"github.com/hmsayem/clean-architecture-implementation/service"
 	"log"
 	"net/http"
 )
@@ -31,11 +31,15 @@ func (*controller) GetEmployees(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		log.Printf("getting employees failed: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to get the employees"})
+		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to get the employees"}); err != nil {
+			return
+		}
 		return
 	}
 	writer.WriteHeader(http.StatusOK)
-	json.NewEncoder(writer).Encode(employees)
+	if err := json.NewEncoder(writer).Encode(employees); err != nil {
+		return
+	}
 }
 
 func (*controller) AddEmployee(writer http.ResponseWriter, request *http.Request) {
@@ -45,23 +49,31 @@ func (*controller) AddEmployee(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		log.Printf("unmarshalling data failed: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to add the new employee"})
+		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to add the new employee"}); err != nil {
+			return
+		}
 		return
 	}
 	err = employeeService.Validate(&employee)
 	if err != nil {
 		log.Printf("validating data failed: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(writer).Encode(errors.ServiceError{Message: err.Error()})
+		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: err.Error()}); err != nil {
+			return
+		}
 		return
 	}
 	err = employeeService.Create(&employee)
 	if err != nil {
 		log.Printf("saving data failed: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to add the new employee"})
+		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to add the new employee"}); err != nil {
+			return
+		}
 		return
 	}
 	writer.WriteHeader(http.StatusCreated)
-	json.NewEncoder(writer).Encode(employee)
+	if err := json.NewEncoder(writer).Encode(employee); err != nil {
+		return
+	}
 }
