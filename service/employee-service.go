@@ -26,8 +26,19 @@ func NewEmployeeService(repo repository.EmployeeRepository) EmployeeService {
 
 func (*service) Validate(employee *entity.Employee) error {
 	if employee == nil {
-		err := errors.New("employee is empty")
-		return err
+		return errors.New("employee is empty")
+	}
+	if employee.Name == "" {
+		return errors.New("empty field `Name`")
+	}
+	if employee.Title == "" {
+		return errors.New("empty field `Title`")
+	}
+	if employee.Team == "" {
+		return errors.New("empty field `Team`")
+	}
+	if employee.Email == "" {
+		return errors.New("empty field `Email`")
 	}
 	return nil
 }
