@@ -19,13 +19,13 @@ func NewFirestoreRepository() EmployeeRepository {
 }
 
 func (*firestoreRepo) Save(employee *entity.Employee) error {
-	ctx := context.Background()
-	client, err := firestore.NewClient(ctx, projectId)
+
+	client, err := getClient()
 	if err != nil {
-		return fmt.Errorf("creating firestore client failed: %v", err)
+		return err
 	}
 	defer client.Close()
-	_, _, err = client.Collection(collectionName).Add(ctx, map[string]interface{}{
+	_, _, err = client.Collection(collectionName).Add(context.Background(), map[string]interface{}{
 		"Id":    employee.Id,
 		"Name":  employee.Name,
 		"Title": employee.Title,
@@ -39,21 +39,19 @@ func (*firestoreRepo) Save(employee *entity.Employee) error {
 }
 
 func (*firestoreRepo) GetAll() ([]entity.Employee, error) {
-	ctx := context.Background()
-	client, err := firestore.NewClient(ctx, projectId)
+	client, err := getClient()
 	if err != nil {
-		return nil, fmt.Errorf("creating firestore client failed: %v", err)
+		return nil, err
 	}
 	defer client.Close()
-	var employees []entity.Employee
-	iterator := client.Collection(collectionName).Documents(ctx)
-	docs, err := iterator.GetAll()
+	docs, err := getDocs(client)
 	if err != nil {
-		return nil, fmt.Errorf("iterating firestore documents failed: %v", err)
+		return nil, err
 	}
+	var employees []entity.Employee
 	for _, doc := range docs {
 		employee := entity.Employee{
-			Id:    doc.Data()["Id"].(int64),
+			Id:    int(doc.Data()["Id"].(int64)),
 			Name:  doc.Data()["Name"].(string),
 			Title: doc.Data()["Title"].(string),
 			Team:  doc.Data()["Team"].(string),
@@ -62,4 +60,46 @@ func (*firestoreRepo) GetAll() ([]entity.Employee, error) {
 		employees = append(employees, employee)
 	}
 	return employees, nil
+}
+
+func (*firestoreRepo) GetEmployee(id int) (*entity.Employee, error) {
+	client, err := getClient()
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
+	docs, err := getDocs(client)
+	if err != nil {
+		return nil, err
+	}
+	for _, doc := range docs {
+		if int(doc.Data()["Id"].(int64)) == id {
+			return &entity.Employee{
+				Id:    int(doc.Data()["Id"].(int64)),
+				Name:  doc.Data()["Name"].(string),
+				Title: doc.Data()["Title"].(string),
+				Team:  doc.Data()["Team"].(string),
+				Email: doc.Data()["Email"].(string),
+			}, nil
+		}
+	}
+	return nil, nil
+}
+
+func getClient() (*firestore.Client, error) {
+	ctx := context.Background()
+	client, err := firestore.NewClient(ctx, projectId)
+	if err != nil {
+		return nil, fmt.Errorf("creating firestore client failed: %v", err)
+	}
+	return client, nil
+}
+
+func getDocs(client *firestore.Client) ([]*firestore.DocumentSnapshot, error) {
+	iterator := client.Collection(collectionName).Documents(context.Background())
+	docs, err := iterator.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("iterating firestore documents failed: %v", err)
+	}
+	return docs, nil
 }

@@ -11,15 +11,19 @@ type mockRepository struct {
 	mock.Mock
 }
 
+func (repo *mockRepository) GetAll() ([]entity.Employee, error) {
+	args := repo.Called()
+	result := args.Get(0)
+	return result.([]entity.Employee), args.Error(1)
+}
 func (repo *mockRepository) Save(employee *entity.Employee) error {
 	args := repo.Called()
 	return args.Error(0)
 }
 
-func (repo *mockRepository) GetAll() ([]entity.Employee, error) {
+func (repo *mockRepository) GetEmployee(id int) (*entity.Employee, error) {
 	args := repo.Called()
-	result := args.Get(0)
-	return result.([]entity.Employee), args.Error(1)
+	return nil, args.Error(1)
 }
 
 func TestGetAll(t *testing.T) {

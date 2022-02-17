@@ -5,6 +5,7 @@ import (
 )
 
 type EmployeeRepository interface {
-	Save(employee *entity.Employee) error
 	GetAll() ([]entity.Employee, error)
+	GetEmployee(id int) (*entity.Employee, error)
+	Save(employee *entity.Employee) error
 }
