@@ -62,7 +62,7 @@ func (*firestoreRepo) GetAll() ([]entity.Employee, error) {
 	return employees, nil
 }
 
-func (*firestoreRepo) GetEmployee(id int) (*entity.Employee, error) {
+func (*firestoreRepo) GetEmployeeByID(id int) (*entity.Employee, error) {
 	client, err := getClient()
 	if err != nil {
 		return nil, err

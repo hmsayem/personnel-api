@@ -13,7 +13,7 @@ import (
 
 type EmployeeController interface {
 	GetEmployees(writer http.ResponseWriter, request *http.Request)
-	GetEmployee(writer http.ResponseWriter, request *http.Request)
+	GetEmployeeByID(writer http.ResponseWriter, request *http.Request)
 	AddEmployee(writer http.ResponseWriter, request *http.Request)
 }
 
@@ -46,10 +46,10 @@ func (*controller) GetEmployees(writer http.ResponseWriter, request *http.Reques
 	}
 }
 
-func (*controller) GetEmployee(writer http.ResponseWriter, request *http.Request) {
+func (*controller) GetEmployeeByID(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	employeeId := strings.Split(request.URL.Path, "/")[2]
-	employee, err := employeeService.GetEmployee(employeeId)
+	employee, err := employeeService.GetEmployeeByID(employeeId)
 	if err != nil {
 		log.Printf("getting employee failed: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)

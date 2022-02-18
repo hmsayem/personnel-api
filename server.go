@@ -17,7 +17,7 @@ var (
 
 func main() {
 	httpRouter.Get("/employees", employeeController.GetEmployees)
-	httpRouter.Get("/employees/{id}", employeeController.GetEmployee)
+	httpRouter.Get("/employees/{id}", employeeController.GetEmployeeByID)
 	httpRouter.Post("/employees", employeeController.AddEmployee)
 	httpRouter.Serve(os.Getenv("SERVER_PORT"))
 }

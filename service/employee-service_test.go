@@ -21,9 +21,10 @@ func (repo *mockRepository) Save(employee *entity.Employee) error {
 	return args.Error(0)
 }
 
-func (repo *mockRepository) GetEmployee(id int) (*entity.Employee, error) {
+func (repo *mockRepository) GetEmployeeByID(id int) (*entity.Employee, error) {
 	args := repo.Called()
-	return nil, args.Error(1)
+	result := args.Get(0)
+	return result.(*entity.Employee), args.Error(1)
 }
 
 func TestGetAll(t *testing.T) {
@@ -39,11 +40,32 @@ func TestGetAll(t *testing.T) {
 	testService := NewEmployeeService(mockRepo)
 	result, err := testService.GetAll()
 	assert.Nil(t, err)
+	assert.Equal(t, 1, result[0].Id)
 	assert.Equal(t, "Hossain Mahmud", result[0].Name)
-	assert.Equal(t, int64(1), result[0].Id)
 	assert.Equal(t, "Software Engineer", result[0].Title)
 	assert.Equal(t, "Stash", result[0].Team)
 	assert.Equal(t, "hmsayem@gmail.com", result[0].Email)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetEmployeeByID(t *testing.T) {
+	mockRepo := new(mockRepository)
+	employee := &entity.Employee{
+		Name:  "Hossain Mahmud",
+		Id:    1,
+		Title: "Software Engineer",
+		Team:  "Stash",
+		Email: "hmsayem@gmail.com",
+	}
+	mockRepo.On("GetEmployeeByID").Return(employee, nil)
+	testService := NewEmployeeService(mockRepo)
+	result, err := testService.GetEmployeeByID("1")
+	assert.Nil(t, err)
+	assert.Equal(t, 1, result.Id)
+	assert.Equal(t, "Hossain Mahmud", result.Name)
+	assert.Equal(t, "Software Engineer", result.Title)
+	assert.Equal(t, "Stash", result.Team)
+	assert.Equal(t, "hmsayem@gmail.com", result.Email)
 	mockRepo.AssertExpectations(t)
 }
 
