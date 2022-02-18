@@ -14,7 +14,7 @@ type redisCache struct {
 	expire time.Duration
 }
 
-func NewRedisCache(host string, db int, expire time.Duration) *redisCache {
+func NewRedisCache(host string, db int, expire time.Duration) EmployeeCache {
 	return &redisCache{
 		host:   host,
 		db:     db,

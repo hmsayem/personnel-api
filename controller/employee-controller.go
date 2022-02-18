@@ -21,11 +21,12 @@ type controller struct{}
 
 var (
 	employeeService service.EmployeeService
-	EmployeeCache   cache.EmployeeCache
+	employeeCache   cache.EmployeeCache
 )
 
-func NewEmployeeController(service service.EmployeeService) EmployeeController {
+func NewEmployeeController(service service.EmployeeService, cache cache.EmployeeCache) EmployeeController {
 	employeeService = service
+	employeeCache = cache
 	return &controller{}
 }
 
@@ -49,15 +50,23 @@ func (*controller) GetEmployees(writer http.ResponseWriter, request *http.Reques
 func (*controller) GetEmployeeByID(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	employeeId := strings.Split(request.URL.Path, "/")[2]
-	employee, err := employeeService.GetEmployeeByID(employeeId)
+	employee, err := employeeCache.Get(employeeId)
 	if err != nil {
-		log.Printf("getting employee failed: %v", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to get the employee"}); err != nil {
+		log.Printf("getting employee from cache failed: %v", err)
+	}
+	if employee == nil {
+		employee, err := employeeService.GetEmployeeByID(employeeId)
+		if err != nil {
+			log.Printf("getting employee failed: %v", err)
+			writer.WriteHeader(http.StatusInternalServerError)
+			if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to get the employee"}); err != nil {
+				return
+			}
 			return
 		}
-		return
+		employeeCache.Set(employeeId, employee)
 	}
+
 	writer.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(writer).Encode(employee); err != nil {
 		return
