@@ -67,6 +67,7 @@ func (*controller) GetEmployeeByID(writer http.ResponseWriter, request *http.Req
 			log.Printf("failed to save key in cache: %v", err)
 		}
 	}
+
 	writer.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(writer).Encode(employee); err != nil {
 		return
