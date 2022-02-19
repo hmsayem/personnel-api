@@ -1,45 +1,56 @@
 ### Clean Architecture Principles in REST API
-An Implementation of Clean Architecture principles in REST API server with Go.
+An Implementation of Clean Architecture principles in REST API server using Go. 
 
-**Fundamentals of Clean Architecture:**
+**Benefits of Clean Architecture:**
 - Independent of frameworks.
 - Testable 
 - Independent of UI.
 - Independent of database.
-- Independent of any external agency.
+
+#### Application Structure:
+<img src="app.jpg" alt="Application Structure" width="650">
 
 ### API Reference
 
 #### Get all employees
 
 ```http
-  GET /employees
+GET /employees
 ```
 
+#### Get an employee
+
+```http
+GET /employees/${id}
+```
 
 #### Add an employee
 
 ```http
-  POST /employees
+POST /employees
 ```
 
 ### Run
-
+Install and start Redis server for caching
+```bash
+sudo apt install redis-server
+sudo systemctl status redis-server
+```
 Clone the project
 
 ```bash
-  git clone https://github.com/hmsayem/clean-architecture-implementation.git
+git clone https://github.com/hmsayem/clean-architecture-implementation.git
 ```
 Go to the project directory
 
 ```bash
-  cd clean-architecture-implementation
+cd clean-architecture-implementation
 ```
 
 Copy all third-party dependencies to vendor folder.
 
 ```bash
-  go mod vendor
+go mod vendor
 ```
 
 Export environment variables.
@@ -53,11 +64,15 @@ SERVER_PORT=:8000
 Start the server.
 
 ```bash
-  go run .
+go run .
 ```
 
 ### Docker
-
+#### Run Redis Server
+```bash
+docker run --name redis --net=host -d redis
+```
+#### Run API server
 Build image.
 
 ```bash
@@ -66,42 +81,57 @@ docker build -t rest-server .
 Run container.
 
 ```bash
- docker run  --mount type=bind,source=/path/to/project-private-key.json,target=/run/secrets/project-private-key.json,readonly -p 8000:8000 rest-server
+docker run --mount type=bind,source=/path/to/project-private-key.json,target=/run/secrets/project-private-key.json,readonly --env GOOGLE_APPLICATION_CREDENTIALS='/run/secrets/project-private-key.json' --env SERVER_PORT=':8000' --net host rest-server
 ```
 
-## Example
+### Examples of API Requests
+#### Get all employees
 ```bash
-❯ curl -XGET  "http://localhost:8000/employees" | jq
+❯ curl -X GET  "http://localhost:8000/employees" | jq
 [
   {
-    "id": 1,
-    "name": "Masudur Rahman",
-    "title": "Senior Software Engineer",
-    "team": "ByteBuilders",
-    "email": "masud@appscode.com"
-  },
-  {
-    "id": 2,
+    "id": 50,
     "name": "Kamol Hasan",
     "title": "Senior Software Engineer",
-    "team": "KubeDB",
-    "email": "kamol@appscode.com"
+    "team": "B",
+    "email": "kamol@gmail.com"
   },
   {
-    "id": 3,
-    "name": "Alif Biswas",
-    "title": "Software Engineer",
-    "team": "KubeDB",
-    "email": "alif@appscode.com"
-  },
-  {
-    "id": 4,
+    "id": 81,
     "name": "Piyush Kanti Das",
     "title": "Software Engineer",
-    "team": "Stash",
-    "email": "piyush@appscode.com"
+    "team": "A",
+    "email": "piyush@gmail.com"
   }
 ]
+```
+#### Get an employee
+```bash
+❯ curl -X GET  "http://localhost:8000/employees/81" | jq
+{
+  "id": 81,
+  "name": "Piyush Kanti Das",
+  "title": "Software Engineer",
+  "team": "A",
+  "email": "piyush@gmail.com"
+}
+```
+#### Add an employee
+```bash
+ ❯ curl -X POST "http://localhost:8000/employees" -d 
+ '{
+        "name": "Hossain Mahmud",
+        "title": "Software Engineer",
+        "team": "A",
+        "email": "hossain@gmail.com"
+  }'
+{"id":89,"name":"Hossain Mahmud","title":"Software Engineer","team":"A","email":"hossain@gmail.com"}
 
 ```
-
+### Run Unit Tests
+#### Test Service Layer using Mock Repository
+```bash
+go test service/employee-service.go  service/employee-service_test.g
+```
+### Acknowledgements
+ - [Pragmatic Reviews](https://www.youtube.com/c/PragmaticReviews)
