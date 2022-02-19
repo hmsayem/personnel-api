@@ -6,6 +6,7 @@ import (
 	"github.com/hmsayem/clean-architecture-implementation/repository"
 	"math/rand"
 	"strconv"
+	"time"
 )
 
 type EmployeeService interface {
@@ -46,7 +47,8 @@ func (*service) Validate(employee *entity.Employee) error {
 }
 
 func (*service) Create(employee *entity.Employee) error {
-	employee.Id = rand.Intn(100)
+	rand.Seed(time.Now().UnixNano())
+	employee.Id = rand.Intn(1000)
 	return employeeRepo.Save(employee)
 }
 
