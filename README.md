@@ -3,45 +3,48 @@ An Implementation of Clean Architecture principles in REST API server using Go.
 
 **Benefits of Clean Architecture:**
 - Independent of frameworks.
-- Testable 
+- Testable.
 - Independent of UI.
 - Independent of database.
 
-#### Application Structure:
-<img src="app.jpg" alt="Application Structure" width="650">
+#### Overview:
+<img src="overview.jpg" alt="Application Structure:" width="650">
+
+#### Control Flow:
+<img src="flow.jpg" alt="Request Flow" width="650">
 
 ### API Reference
 
-#### Get all employees
+##### Get all employees
 
 ```http
 GET /employees
 ```
 
-#### Get an employee
+##### Get an employee
 
 ```http
 GET /employees/${id}
 ```
 
-#### Add an employee
+##### Add an employee
 
 ```http
 POST /employees
 ```
 
 ### Run
-Install and start Redis server for caching
+Install and start Redis server for caching.
 ```bash
 sudo apt install redis-server
 sudo systemctl status redis-server
 ```
-Clone the project
+Clone the project.
 
 ```bash
 git clone https://github.com/hmsayem/clean-architecture-implementation.git
 ```
-Go to the project directory
+Go to the project directory.
 
 ```bash
 cd clean-architecture-implementation
@@ -81,11 +84,11 @@ docker build -t rest-server .
 Run container.
 
 ```bash
-docker run --mount type=bind,source=/path/to/project-private-key.json,target=/run/secrets/project-private-key.json,readonly --env GOOGLE_APPLICATION_CREDENTIALS='/run/secrets/project-private-key.json' --env SERVER_PORT=':8000' --net host rest-server
+docker run --mount type=bind,source=/path/to/project-private-key.json,target=/run/secrets/project-private-key.json,readonly --env GOOGLE_APPLICATION_CREDENTIALS='/run/secrets/project-private-key.json' --env SERVER_PORT=':8000' --env REDIS_SERVER_HOST='localhost:6379' --net host rest-server
 ```
 
 ### Examples of API Requests
-#### Get all employees
+##### Get all employees
 ```bash
 ❯ curl -X GET  "http://localhost:8000/employees" | jq
 [
@@ -105,7 +108,7 @@ docker run --mount type=bind,source=/path/to/project-private-key.json,target=/ru
   }
 ]
 ```
-#### Get an employee
+##### Get an employee
 ```bash
 ❯ curl -X GET  "http://localhost:8000/employees/81" | jq
 {
@@ -116,7 +119,7 @@ docker run --mount type=bind,source=/path/to/project-private-key.json,target=/ru
   "email": "piyush@gmail.com"
 }
 ```
-#### Add an employee
+##### Add an employee
 ```bash
  ❯ curl -X POST "http://localhost:8000/employees" -d 
  '{
@@ -129,9 +132,9 @@ docker run --mount type=bind,source=/path/to/project-private-key.json,target=/ru
 
 ```
 ### Run Unit Tests
-#### Test Service Layer using Mock Repository
+##### Test Service Layer using Mock Repository
 ```bash
-go test service/employee-service.go  service/employee-service_test.g
+go test service/employee-service.go  service/employee-service_test.go
 ```
 ### Acknowledgements
  - [Pragmatic Reviews](https://www.youtube.com/c/PragmaticReviews)
