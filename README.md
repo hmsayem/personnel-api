@@ -33,7 +33,7 @@ GET /employees/${id}
 POST /employees
 ```
 
-### Run
+### Run Locally
 Install and start Redis server for caching.
 ```bash
 sudo apt install redis-server
@@ -62,6 +62,8 @@ Export environment variables.
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/project-private-key.json
 
 SERVER_PORT=:8000
+
+REDIS_SERVER_HOST=localhost:6379
 ```
 
 Start the server.
@@ -70,7 +72,7 @@ Start the server.
 go run .
 ```
 
-### Docker
+### Run with Docker
 #### Run Redis Server
 ```bash
 docker run --name redis --net=host -d redis
@@ -79,12 +81,37 @@ docker run --name redis --net=host -d redis
 Build image.
 
 ```bash
-docker build -t rest-server .
+docker build -t employee-server .
 ```
 Run container.
 
 ```bash
-docker run --mount type=bind,source=/path/to/project-private-key.json,target=/run/secrets/project-private-key.json,readonly --env GOOGLE_APPLICATION_CREDENTIALS='/run/secrets/project-private-key.json' --env SERVER_PORT=':8000' --env REDIS_SERVER_HOST='localhost:6379' --net host rest-server
+docker run --mount type=bind,source=/path/to/project-private-key.json,target=/run/secrets/project-private-key.json,readonly --env GOOGLE_APPLICATION_CREDENTIALS='/run/secrets/project-private-key.json' --env SERVER_PORT=':8000' --env REDIS_SERVER_HOST='localhost:6379' --net host employee-server
+```
+
+### Deploy on Kubernetes
+Create secret from `project-private-key.json`
+```bash
+kubectl create secret generic firestore-secret --from-file=/path/to/project-private-key.json
+```
+Create Configmaps
+```bash
+kubectl apply -f k8s/redis-server-cm.yaml
+kubectl apply -f k8s/employee-server-cm.yaml
+```
+Create Pods
+```bash
+kubectl apply -f k8s/redis-server.yaml
+kubectl apply -f k8s/employee-server.yaml
+```
+Create Services
+```bash
+kubectl apply -f k8s/redis-server-svc.yaml
+kubectl apply -f k8s/employee-server-svc.yaml
+```
+Port Forward
+```bash
+kubectl port-forward svc/employee 8000
 ```
 
 ### Examples of API Requests

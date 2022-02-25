@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: employee-server-cm
+data:
+  firestorekey: "/etc/secret-volume/server-key.json"
+  port: ":8000"

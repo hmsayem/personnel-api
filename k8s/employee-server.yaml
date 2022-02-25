@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: employee-server
+  labels:
+    app: employee
+spec:
+  containers:
+  - image: hmsayem/employee-server
+    name: employee-server
+    env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      valueFrom:
+        configMapKeyRef:
+          name: employee-server-cm
+          key: firestorekey
+    - name: SERVER_PORT
+      valueFrom: 
+        configMapKeyRef:
+          name: employee-server-cm
+          key: port
+    - name: REDIS_SERVER_HOST
+      valueFrom:
+        configMapKeyRef:
+          name: redis-server-cm
+          key: host
+    volumeMounts:  
+    - name: secret-volume
+      mountPath: /etc/secret-volume
+  volumes:
+  - name: secret-volume
+    secret:
+      secretName: firestore-secret
