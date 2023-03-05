@@ -13,9 +13,10 @@ import (
 )
 
 type EmployeeController interface {
-	GetEmployees(writer http.ResponseWriter, request *http.Request)
-	GetEmployee(writer http.ResponseWriter, request *http.Request)
-	AddEmployee(writer http.ResponseWriter, request *http.Request)
+	GetAll(writer http.ResponseWriter, request *http.Request)
+	Get(writer http.ResponseWriter, request *http.Request)
+	Update(writer http.ResponseWriter, request *http.Request)
+	Add(writer http.ResponseWriter, request *http.Request)
 }
 
 type controller struct{}
@@ -31,7 +32,7 @@ func NewEmployeeController(service service.EmployeeService, cache cache.Employee
 	return &controller{}
 }
 
-func (*controller) GetEmployees(writer http.ResponseWriter, request *http.Request) {
+func (*controller) GetAll(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	employees, err := employeeService.GetAll()
 	if err != nil {
@@ -48,13 +49,13 @@ func (*controller) GetEmployees(writer http.ResponseWriter, request *http.Reques
 	}
 }
 
-func (*controller) GetEmployee(writer http.ResponseWriter, request *http.Request) {
+func (*controller) Get(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
-	employeeId := strings.Split(request.URL.Path, "/")[2]
-	employee, err := employeeCache.Get(employeeId)
+	id := strings.Split(request.URL.Path, "/")[2]
+	employee, err := employeeCache.Get(id)
 	if err != nil {
 		log.Printf("failed to get value from cache: %v", err)
-		employee, err = employeeService.Get(employeeId)
+		employee, err = employeeService.Get(id)
 		if err != nil {
 			log.Printf("failed to get employee: %v", err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -63,9 +64,7 @@ func (*controller) GetEmployee(writer http.ResponseWriter, request *http.Request
 			}
 			return
 		}
-		if err := employeeCache.Set(employeeId, employee); err != nil {
-			log.Printf("failed to save key in cache: %v", err)
-		}
+		updateCache(employee)
 	}
 
 	writer.WriteHeader(http.StatusOK)
@@ -74,7 +73,7 @@ func (*controller) GetEmployee(writer http.ResponseWriter, request *http.Request
 	}
 }
 
-func (*controller) AddEmployee(writer http.ResponseWriter, request *http.Request) {
+func (*controller) Add(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	var employee entity.Employee
 	err := json.NewDecoder(request.Body).Decode(&employee)
@@ -104,11 +103,44 @@ func (*controller) AddEmployee(writer http.ResponseWriter, request *http.Request
 		}
 		return
 	}
-	if err := employeeCache.Set(strconv.Itoa(employee.Id), &employee); err != nil {
-		log.Printf("failed to save key in cache: %v", err)
-	}
+	updateCache(&employee)
 	writer.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(writer).Encode(employee); err != nil {
 		return
+	}
+}
+
+func (*controller) Update(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Content-type", "application/json")
+	var employee entity.Employee
+	err := json.NewDecoder(request.Body).Decode(&employee)
+	if err != nil {
+		log.Printf("unmarshalling data failed: %v", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to update employee"}); err != nil {
+			return
+		}
+		return
+	}
+
+	id := strings.Split(request.URL.Path, "/")[2]
+	err = employeeService.Update(id, &employee)
+	if err != nil {
+		log.Printf("updating data failed: %v", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to update employee"}); err != nil {
+			return
+		}
+		return
+	}
+	if err := employeeCache.Delete(id); err != nil {
+		log.Printf("failed to delete key in cache: %v", err)
+	}
+	writer.WriteHeader(http.StatusNoContent)
+}
+
+func updateCache(employee *entity.Employee) {
+	if err := employeeCache.Set(strconv.Itoa(employee.Id), employee); err != nil {
+		log.Printf("failed to save key in cache: %v", err)
 	}
 }

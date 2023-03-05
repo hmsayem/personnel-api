@@ -54,3 +54,8 @@ func (cache *redisCache) Get(key string) (*entity.Employee, error) {
 	}
 	return &employee, nil
 }
+
+func (cache *redisCache) Delete(key string) error {
+	client := cache.getClient()
+	return client.Del(context.Background(), key).Err()
+}

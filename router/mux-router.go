@@ -20,6 +20,10 @@ func (*muxRouter) Get(uri string, f func(writer http.ResponseWriter, request *ht
 	muxDispatcher.HandleFunc(uri, f).Methods("GET")
 }
 
+func (*muxRouter) Put(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
+	muxDispatcher.HandleFunc(uri, f).Methods("PUT")
+}
+
 func (*muxRouter) Post(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
 	muxDispatcher.HandleFunc(uri, f).Methods("POST")
 }

@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"github.com/hmsayem/clean-architecture-implementation/entity"
 	"google.golang.org/api/iterator"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"strconv"
 )
 
 const (
@@ -20,26 +17,6 @@ type firestoreRepo struct{}
 
 func NewFirestoreRepository() EmployeeRepository {
 	return &firestoreRepo{}
-}
-
-func (*firestoreRepo) Save(employee *entity.Employee) error {
-
-	client, err := getClient()
-	if err != nil {
-		return err
-	}
-	defer client.Close()
-	_, _, err = client.Collection(collectionName).Add(context.Background(), map[string]interface{}{
-		"Id":    employee.Id,
-		"Name":  employee.Name,
-		"Title": employee.Title,
-		"Team":  employee.Team,
-		"Email": employee.Email,
-	})
-	if err != nil {
-		return fmt.Errorf("creating firestore document failed: %v", err)
-	}
-	return nil
 }
 
 func (*firestoreRepo) GetAll() ([]entity.Employee, error) {
@@ -102,17 +79,18 @@ func (repo *firestoreRepo) Update(id int, employee *entity.Employee) error {
 	}
 	defer client.Close()
 
-	// Get the document reference for the employee with the given ID.
-	docRef := client.Collection(collectionName).Doc(strconv.Itoa(id))
+	// Construct a query to find the document that contains the employee with the given ID.
+	query := client.Collection(collectionName).Where("Id", "==", id).Limit(1)
 
-	// Check if the document exists.
-	_, err = docRef.Get(context.Background())
+	// Perform the query and get the document reference.
+	docs, err := query.Documents(context.Background()).GetAll()
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return nil
-		}
-		return fmt.Errorf("getting firestore document failed: %v", err)
+		return fmt.Errorf("querying firestore documents failed: %v", err)
 	}
+	if len(docs) == 0 {
+		return nil // Employee not found
+	}
+	docRef := docs[0].Ref
 
 	// Construct a slice of Firestore update structs.
 	var updates []firestore.Update
@@ -134,7 +112,26 @@ func (repo *firestoreRepo) Update(id int, employee *entity.Employee) error {
 	if err != nil {
 		return fmt.Errorf("updating firestore document failed: %v", err)
 	}
+	return nil
+}
 
+func (*firestoreRepo) Save(employee *entity.Employee) error {
+
+	client, err := getClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	_, _, err = client.Collection(collectionName).Add(context.Background(), map[string]interface{}{
+		"Id":    employee.Id,
+		"Name":  employee.Name,
+		"Title": employee.Title,
+		"Team":  employee.Team,
+		"Email": employee.Email,
+	})
+	if err != nil {
+		return fmt.Errorf("creating firestore document failed: %v", err)
+	}
 	return nil
 }
 

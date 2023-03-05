@@ -20,6 +20,10 @@ func (*chiRouter) Get(uri string, f func(writer http.ResponseWriter, request *ht
 	chiDispatcher.Get(uri, f)
 }
 
+func (*chiRouter) Put(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
+	chiDispatcher.Put(uri, f)
+}
+
 func (*chiRouter) Post(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
 	chiDispatcher.Post(uri, f)
 }
