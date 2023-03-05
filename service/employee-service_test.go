@@ -27,56 +27,74 @@ func (repo *mockRepository) Get(id int) (*entity.Employee, error) {
 	return result.(*entity.Employee), args.Error(1)
 }
 
+func (repo *mockRepository) Update(id int, employee *entity.Employee) error {
+	args := repo.Called()
+	return args.Error(0)
+}
+
 func TestGetAll(t *testing.T) {
 	mockRepo := new(mockRepository)
-	employee := entity.Employee{
-		Name:  "Hossain Mahmud",
-		Id:    1,
-		Title: "Software Engineer",
-		Team:  "Stash",
-		Email: "hmsayem@gmail.com",
+	employees := []entity.Employee{
+		{
+			Name:  "n1",
+			Id:    1,
+			Title: "t1",
+			Team:  "s1",
+			Email: "n1@gmail.com",
+		},
+		{
+			Name:  "n2",
+			Id:    2,
+			Title: "t2",
+			Team:  "s2",
+			Email: "n2@gmail.com",
+		},
 	}
-	mockRepo.On("GetAll").Return([]entity.Employee{employee}, nil)
+	mockRepo.On("GetAll").Return(employees, nil)
 	testService := NewEmployeeService(mockRepo)
 	result, err := testService.GetAll()
 	assert.Nil(t, err)
-	assert.Equal(t, 1, result[0].Id)
-	assert.Equal(t, "Hossain Mahmud", result[0].Name)
-	assert.Equal(t, "Software Engineer", result[0].Title)
-	assert.Equal(t, "Stash", result[0].Team)
-	assert.Equal(t, "hmsayem@gmail.com", result[0].Email)
+
+	for i := range result {
+		assert.Equal(t, employees[i].Id, result[i].Id)
+		assert.Equal(t, employees[i].Name, result[i].Name)
+		assert.Equal(t, employees[i].Title, result[i].Title)
+		assert.Equal(t, employees[i].Team, result[i].Team)
+		assert.Equal(t, employees[i].Email, result[i].Email)
+	}
+
 	mockRepo.AssertExpectations(t)
 }
 
-func TestGetEmployeeByID(t *testing.T) {
+func TestGet(t *testing.T) {
 	mockRepo := new(mockRepository)
 	employee := &entity.Employee{
-		Name:  "Hossain Mahmud",
+		Name:  "n1",
 		Id:    1,
-		Title: "Software Engineer",
-		Team:  "Stash",
-		Email: "hmsayem@gmail.com",
+		Title: "t1",
+		Team:  "s1",
+		Email: "n1@gmail.com",
 	}
-	mockRepo.On("GetEmployeeByID").Return(employee, nil)
+	mockRepo.On("Get").Return(employee, nil)
 	testService := NewEmployeeService(mockRepo)
 	result, err := testService.Get("1")
 	assert.Nil(t, err)
-	assert.Equal(t, 1, result.Id)
-	assert.Equal(t, "Hossain Mahmud", result.Name)
-	assert.Equal(t, "Software Engineer", result.Title)
-	assert.Equal(t, "Stash", result.Team)
-	assert.Equal(t, "hmsayem@gmail.com", result.Email)
+	assert.Equal(t, employee.Id, result.Id)
+	assert.Equal(t, employee.Name, result.Name)
+	assert.Equal(t, employee.Title, result.Title)
+	assert.Equal(t, employee.Team, result.Team)
+	assert.Equal(t, employee.Email, result.Email)
 	mockRepo.AssertExpectations(t)
 }
 
 func TestCreate(t *testing.T) {
 	mockRepo := new(mockRepository)
 	employee := &entity.Employee{
-		Name:  "Hossain Mahmud",
+		Name:  "n1",
 		Id:    1,
-		Title: "Software Engineer",
-		Team:  "Stash",
-		Email: "hmsayem@gmail.com",
+		Title: "t1",
+		Team:  "s1",
+		Email: "n1@gmail.com",
 	}
 	mockRepo.On("Save").Return(nil)
 	testService := NewEmployeeService(mockRepo)
@@ -95,9 +113,9 @@ func TestValidateEmptyEmployee(t *testing.T) {
 func TestValidateEmptyEmployeeName(t *testing.T) {
 	employee := &entity.Employee{
 		Id:    1,
-		Title: "Software Engineer",
-		Team:  "Stash",
-		Email: "hmsayem@gmail.com",
+		Title: "t1",
+		Team:  "s1",
+		Email: "n1@gmail.com",
 	}
 	testService := NewEmployeeService(nil)
 	err := testService.Validate(employee)
@@ -107,10 +125,10 @@ func TestValidateEmptyEmployeeName(t *testing.T) {
 
 func TestValidateEmptyEmployeeTitle(t *testing.T) {
 	employee := &entity.Employee{
+		Name:  "n1",
 		Id:    1,
-		Name:  "Hossain Mahmud",
-		Team:  "Stash",
-		Email: "hmsayem@gmail.com",
+		Team:  "s1",
+		Email: "n1@gmail.com",
 	}
 	testService := NewEmployeeService(nil)
 	err := testService.Validate(employee)
@@ -120,10 +138,10 @@ func TestValidateEmptyEmployeeTitle(t *testing.T) {
 
 func TestValidateEmptyEmployeeTeam(t *testing.T) {
 	employee := &entity.Employee{
+		Name:  "n1",
 		Id:    1,
-		Name:  "Hossain Mahmud",
-		Title: "Software Engineer",
-		Email: "hmsayem@gmail.com",
+		Title: "t1",
+		Email: "n1@gmail.com",
 	}
 	testService := NewEmployeeService(nil)
 	err := testService.Validate(employee)
@@ -133,10 +151,10 @@ func TestValidateEmptyEmployeeTeam(t *testing.T) {
 
 func TestValidateEmptyEmployeeEmail(t *testing.T) {
 	employee := &entity.Employee{
+		Name:  "n1",
 		Id:    1,
-		Name:  "Hossain Mahmud",
-		Title: "Software Engineer",
-		Team:  "Stash",
+		Title: "t1",
+		Team:  "s1",
 	}
 	testService := NewEmployeeService(nil)
 	err := testService.Validate(employee)

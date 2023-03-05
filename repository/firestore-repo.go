@@ -5,6 +5,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/hmsayem/clean-architecture-implementation/entity"
+	"google.golang.org/api/iterator"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"strconv"
 )
 
 const (
@@ -44,10 +48,13 @@ func (*firestoreRepo) GetAll() ([]entity.Employee, error) {
 		return nil, err
 	}
 	defer client.Close()
-	docs, err := getDocs(client)
+
+	iter := client.Collection(collectionName).Documents(context.Background())
+	docs, err := iter.GetAll()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("iterating firestore documents failed: %v", err)
 	}
+
 	var employees []entity.Employee
 	for _, doc := range docs {
 		employee := entity.Employee{
@@ -62,28 +69,73 @@ func (*firestoreRepo) GetAll() ([]entity.Employee, error) {
 	return employees, nil
 }
 
-func (*firestoreRepo) Get(id int) (*entity.Employee, error) {
+func (repo *firestoreRepo) Get(id int) (*entity.Employee, error) {
 	client, err := getClient()
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
-	docs, err := getDocs(client)
+
+	query := client.Collection(collectionName).Where("Id", "==", id).Limit(1)
+	iter := query.Documents(context.Background())
+	docSnapshot, err := iter.Next()
 	if err != nil {
-		return nil, err
-	}
-	for _, doc := range docs {
-		if int(doc.Data()["Id"].(int64)) == id {
-			return &entity.Employee{
-				Id:    int(doc.Data()["Id"].(int64)),
-				Name:  doc.Data()["Name"].(string),
-				Title: doc.Data()["Title"].(string),
-				Team:  doc.Data()["Team"].(string),
-				Email: doc.Data()["Email"].(string),
-			}, nil
+		if err == iterator.Done {
+			return nil, nil // Employee not found
 		}
+		return nil, fmt.Errorf("iterating firestore documents failed: %v", err)
 	}
-	return nil, nil
+
+	return &entity.Employee{
+		Id:    int(docSnapshot.Data()["Id"].(int64)),
+		Name:  docSnapshot.Data()["Name"].(string),
+		Title: docSnapshot.Data()["Title"].(string),
+		Team:  docSnapshot.Data()["Team"].(string),
+		Email: docSnapshot.Data()["Email"].(string),
+	}, nil
+}
+
+func (repo *firestoreRepo) Update(id int, employee *entity.Employee) error {
+	client, err := getClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	// Get the document reference for the employee with the given ID.
+	docRef := client.Collection(collectionName).Doc(strconv.Itoa(id))
+
+	// Check if the document exists.
+	_, err = docRef.Get(context.Background())
+	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil
+		}
+		return fmt.Errorf("getting firestore document failed: %v", err)
+	}
+
+	// Construct a slice of Firestore update structs.
+	var updates []firestore.Update
+	if employee.Name != "" {
+		updates = append(updates, firestore.Update{Path: "Name", Value: employee.Name})
+	}
+	if employee.Title != "" {
+		updates = append(updates, firestore.Update{Path: "Title", Value: employee.Title})
+	}
+	if employee.Team != "" {
+		updates = append(updates, firestore.Update{Path: "Team", Value: employee.Team})
+	}
+	if employee.Email != "" {
+		updates = append(updates, firestore.Update{Path: "Email", Value: employee.Email})
+	}
+
+	// Update the fields of the document.
+	_, err = docRef.Update(context.Background(), updates)
+	if err != nil {
+		return fmt.Errorf("updating firestore document failed: %v", err)
+	}
+
+	return nil
 }
 
 func getClient() (*firestore.Client, error) {
@@ -93,13 +145,4 @@ func getClient() (*firestore.Client, error) {
 		return nil, fmt.Errorf("creating firestore client failed: %v", err)
 	}
 	return client, nil
-}
-
-func getDocs(client *firestore.Client) ([]*firestore.DocumentSnapshot, error) {
-	iterator := client.Collection(collectionName).Documents(context.Background())
-	docs, err := iterator.GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("iterating firestore documents failed: %v", err)
-	}
-	return docs, nil
 }

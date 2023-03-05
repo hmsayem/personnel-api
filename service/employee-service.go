@@ -63,3 +63,11 @@ func (*service) Get(id string) (*entity.Employee, error) {
 	}
 	return employeeRepo.Get(employeeId)
 }
+
+func (*service) Update(id string, employee *entity.Employee) error {
+	parsedId, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+	return employeeRepo.Update(parsedId, employee)
+}
