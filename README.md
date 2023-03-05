@@ -1,4 +1,4 @@
-### Clean Architecture Principles in REST API
+### Personnel API
 An Implementation of Clean Architecture principles in REST API server using Go. 
 
 **Benefits of Clean Architecture:**

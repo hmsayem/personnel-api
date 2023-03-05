@@ -59,7 +59,7 @@ func TestGetEmployeeByID(t *testing.T) {
 	}
 	mockRepo.On("GetEmployeeByID").Return(employee, nil)
 	testService := NewEmployeeService(mockRepo)
-	result, err := testService.GetEmployeeByID("1")
+	result, err := testService.Get("1")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, result.Id)
 	assert.Equal(t, "Hossain Mahmud", result.Name)

@@ -13,7 +13,7 @@ type EmployeeService interface {
 	Validate(employee *entity.Employee) error
 	Create(employee *entity.Employee) error
 	GetAll() ([]entity.Employee, error)
-	GetEmployeeByID(id string) (*entity.Employee, error)
+	Get(id string) (*entity.Employee, error)
 }
 
 type service struct{}
@@ -56,7 +56,7 @@ func (*service) GetAll() ([]entity.Employee, error) {
 	return employeeRepo.GetAll()
 }
 
-func (*service) GetEmployeeByID(id string) (*entity.Employee, error) {
+func (*service) Get(id string) (*entity.Employee, error) {
 	employeeId, err := strconv.Atoi(id)
 	if err != nil {
 		return nil, err

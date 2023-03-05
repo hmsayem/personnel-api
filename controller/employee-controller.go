@@ -54,7 +54,7 @@ func (*controller) GetEmployeeByID(writer http.ResponseWriter, request *http.Req
 	employee, err := employeeCache.Get(employeeId)
 	if err != nil {
 		log.Printf("failed to get value from cache: %v", err)
-		employee, err = employeeService.GetEmployeeByID(employeeId)
+		employee, err = employeeService.Get(employeeId)
 		if err != nil {
 			log.Printf("failed to get employee: %v", err)
 			writer.WriteHeader(http.StatusInternalServerError)

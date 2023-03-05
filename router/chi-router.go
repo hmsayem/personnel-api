@@ -26,5 +26,8 @@ func (*chiRouter) Post(uri string, f func(writer http.ResponseWriter, request *h
 
 func (*chiRouter) Serve(port string) {
 	log.Printf("Chi HTTP server is running on port %v", port)
-	http.ListenAndServe(port, chiDispatcher)
+	err := http.ListenAndServe(port, chiDispatcher)
+	if err != nil {
+		log.Fatal("Error starting HTTP server: ", err)
+	}
 }
