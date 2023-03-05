@@ -146,15 +146,17 @@ kubectl port-forward svc/employee 8000
   "email": "piyush@gmail.com"
 }
 ```
+
+
+##### Update an employee
+```bash
+ ❯ curl -X PUT "http://localhost:8000/employees/81" -d '{"title": "Senior Software Engineer"}'
+```
+
 ##### Add an employee
 ```bash
- ❯ curl -X POST "http://localhost:8000/employees" -d 
- '{
-        "name": "Hossain Mahmud",
-        "title": "Software Engineer",
-        "team": "A",
-        "email": "hossain@gmail.com"
-  }'
+ ❯ curl -X POST "http://localhost:8000/employees" -d '{"name": "Hossain Mahmud","title": "Software Engineer","team": "A","email": "hossain@gmail.com"}'
+
 {"id":89,"name":"Hossain Mahmud","title":"Software Engineer","team":"A","email":"hossain@gmail.com"}
 
 ```
