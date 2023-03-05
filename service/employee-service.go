@@ -61,5 +61,5 @@ func (*service) Get(id string) (*entity.Employee, error) {
 	if err != nil {
 		return nil, err
 	}
-	return employeeRepo.GetEmployeeByID(employeeId)
+	return employeeRepo.Get(employeeId)
 }

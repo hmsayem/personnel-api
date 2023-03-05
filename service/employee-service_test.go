@@ -21,7 +21,7 @@ func (repo *mockRepository) Save(employee *entity.Employee) error {
 	return args.Error(0)
 }
 
-func (repo *mockRepository) GetEmployeeByID(id int) (*entity.Employee, error) {
+func (repo *mockRepository) Get(id int) (*entity.Employee, error) {
 	args := repo.Called()
 	result := args.Get(0)
 	return result.(*entity.Employee), args.Error(1)

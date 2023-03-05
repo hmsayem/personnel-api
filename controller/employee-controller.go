@@ -14,7 +14,7 @@ import (
 
 type EmployeeController interface {
 	GetEmployees(writer http.ResponseWriter, request *http.Request)
-	GetEmployeeByID(writer http.ResponseWriter, request *http.Request)
+	GetEmployee(writer http.ResponseWriter, request *http.Request)
 	AddEmployee(writer http.ResponseWriter, request *http.Request)
 }
 
@@ -48,7 +48,7 @@ func (*controller) GetEmployees(writer http.ResponseWriter, request *http.Reques
 	}
 }
 
-func (*controller) GetEmployeeByID(writer http.ResponseWriter, request *http.Request) {
+func (*controller) GetEmployee(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	employeeId := strings.Split(request.URL.Path, "/")[2]
 	employee, err := employeeCache.Get(employeeId)
