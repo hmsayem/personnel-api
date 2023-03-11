@@ -17,44 +17,43 @@ type EmployeeService interface {
 	Validate(employee *entity.Employee) error
 }
 
-type service struct{}
-
-var (
-	employeeRepo repository.EmployeeRepository
-)
+type employee struct {
+	repo repository.EmployeeRepository
+}
 
 func NewEmployeeService(repo repository.EmployeeRepository) EmployeeService {
-	employeeRepo = repo
-	return &service{}
+	return &employee{
+		repo: repo,
+	}
 }
 
-func (*service) GetAll() ([]entity.Employee, error) {
-	return employeeRepo.GetAll()
+func (e *employee) GetAll() ([]entity.Employee, error) {
+	return e.repo.GetAll()
 }
 
-func (*service) Get(id string) (*entity.Employee, error) {
+func (e *employee) Get(id string) (*entity.Employee, error) {
 	employeeId, err := strconv.Atoi(id)
 	if err != nil {
 		return nil, err
 	}
-	return employeeRepo.Get(employeeId)
+	return e.repo.Get(employeeId)
 }
 
-func (*service) Update(id string, employee *entity.Employee) error {
+func (e *employee) Update(id string, employee *entity.Employee) error {
 	parsedId, err := strconv.Atoi(id)
 	if err != nil {
 		return err
 	}
-	return employeeRepo.Update(parsedId, employee)
+	return e.repo.Update(parsedId, employee)
 }
 
-func (*service) Create(employee *entity.Employee) error {
+func (e *employee) Create(employee *entity.Employee) error {
 	rand.Seed(time.Now().UnixNano())
 	employee.Id = rand.Intn(1000)
-	return employeeRepo.Save(employee)
+	return e.repo.Save(employee)
 }
 
-func (*service) Validate(employee *entity.Employee) error {
+func (*employee) Validate(employee *entity.Employee) error {
 	if employee == nil {
 		return errors.New("employee is empty")
 	}

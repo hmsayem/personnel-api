@@ -13,20 +13,20 @@ const (
 	collectionName = "employees"
 )
 
-type firestoreRepo struct{}
-
-func NewFirestoreRepository() EmployeeRepository {
-	return &firestoreRepo{}
+type firestoreRepo struct {
+	client *firestore.Client
 }
 
-func (*firestoreRepo) GetAll() ([]entity.Employee, error) {
-	client, err := getClient()
+func NewFirestoreRepository() (EmployeeRepository, error) {
+	client, err := firestore.NewClient(context.Background(), projectId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("creating firestore client failed: %v", err)
 	}
-	defer client.Close()
+	return &firestoreRepo{client: client}, nil
+}
 
-	iter := client.Collection(collectionName).Documents(context.Background())
+func (f *firestoreRepo) GetAll() ([]entity.Employee, error) {
+	iter := f.client.Collection(collectionName).Documents(context.Background())
 	docs, err := iter.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("iterating firestore documents failed: %v", err)
@@ -46,14 +46,8 @@ func (*firestoreRepo) GetAll() ([]entity.Employee, error) {
 	return employees, nil
 }
 
-func (repo *firestoreRepo) Get(id int) (*entity.Employee, error) {
-	client, err := getClient()
-	if err != nil {
-		return nil, err
-	}
-	defer client.Close()
-
-	query := client.Collection(collectionName).Where("Id", "==", id).Limit(1)
+func (f *firestoreRepo) Get(id int) (*entity.Employee, error) {
+	query := f.client.Collection(collectionName).Where("Id", "==", id).Limit(1)
 	iter := query.Documents(context.Background())
 	docSnapshot, err := iter.Next()
 	if err != nil {
@@ -72,15 +66,9 @@ func (repo *firestoreRepo) Get(id int) (*entity.Employee, error) {
 	}, nil
 }
 
-func (repo *firestoreRepo) Update(id int, employee *entity.Employee) error {
-	client, err := getClient()
-	if err != nil {
-		return err
-	}
-	defer client.Close()
-
+func (f *firestoreRepo) Update(id int, employee *entity.Employee) error {
 	// Construct a query to find the document that contains the employee with the given ID.
-	query := client.Collection(collectionName).Where("Id", "==", id).Limit(1)
+	query := f.client.Collection(collectionName).Where("Id", "==", id).Limit(1)
 
 	// Perform the query and get the document reference.
 	docs, err := query.Documents(context.Background()).GetAll()
@@ -115,14 +103,8 @@ func (repo *firestoreRepo) Update(id int, employee *entity.Employee) error {
 	return nil
 }
 
-func (*firestoreRepo) Save(employee *entity.Employee) error {
-
-	client, err := getClient()
-	if err != nil {
-		return err
-	}
-	defer client.Close()
-	_, _, err = client.Collection(collectionName).Add(context.Background(), map[string]interface{}{
+func (f *firestoreRepo) Save(employee *entity.Employee) error {
+	_, _, err := f.client.Collection(collectionName).Add(context.Background(), map[string]interface{}{
 		"Id":    employee.Id,
 		"Name":  employee.Name,
 		"Title": employee.Title,
@@ -133,13 +115,4 @@ func (*firestoreRepo) Save(employee *entity.Employee) error {
 		return fmt.Errorf("creating firestore document failed: %v", err)
 	}
 	return nil
-}
-
-func getClient() (*firestore.Client, error) {
-	ctx := context.Background()
-	client, err := firestore.NewClient(ctx, projectId)
-	if err != nil {
-		return nil, fmt.Errorf("creating firestore client failed: %v", err)
-	}
-	return client, nil
 }

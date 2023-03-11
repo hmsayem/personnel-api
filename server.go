@@ -6,18 +6,22 @@ import (
 	"github.com/hmsayem/clean-architecture-implementation/repository"
 	"github.com/hmsayem/clean-architecture-implementation/router"
 	"github.com/hmsayem/clean-architecture-implementation/service"
+	"log"
 	"os"
 )
 
-var (
-	fireRepo           = repository.NewFirestoreRepository()
-	employeeService    = service.NewEmployeeService(fireRepo)
-	redisCache         = cache.NewRedisCache(os.Getenv("REDIS_SERVER_HOST"), 0, 0)
-	employeeController = controller.NewEmployeeController(employeeService, redisCache)
-	httpRouter         = router.NewChiRouter()
-)
+var ()
 
 func main() {
+	fireRepo, err := repository.NewFirestoreRepository()
+	if err != nil {
+		log.Fatal(err)
+	}
+	employeeService := service.NewEmployeeService(fireRepo)
+	redisCache := cache.NewRedisCache()
+	employeeController := controller.NewEmployeeController(employeeService, redisCache)
+	httpRouter := router.NewChiRouter()
+
 	httpRouter.Get("/employees", employeeController.GetAll)
 	httpRouter.Get("/employees/{id}", employeeController.Get)
 	httpRouter.Put("/employees/{id}", employeeController.Update)

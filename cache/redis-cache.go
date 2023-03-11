@@ -3,48 +3,39 @@ package cache
 import (
 	"context"
 	"encoding/json"
-	redis "github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/v8"
 	"github.com/hmsayem/clean-architecture-implementation/entity"
+	"os"
 	"time"
 )
 
 type redisCache struct {
-	host   string
-	db     int
-	expire time.Duration
+	*redis.Client
 }
 
-func NewRedisCache(host string, db int, expire time.Duration) EmployeeCache {
+func NewRedisCache() EmployeeCache {
 	return &redisCache{
-		host:   host,
-		db:     db,
-		expire: expire,
+		Client: redis.NewClient(&redis.Options{
+			Addr:     os.Getenv("REDIS_SERVER_HOST"),
+			Password: "", // no password set
+			DB:       0,
+		}),
 	}
-}
-
-func (cache *redisCache) getClient() *redis.Client {
-	return redis.NewClient(&redis.Options{
-		Addr:     cache.host,
-		Password: "", // no password set
-		DB:       cache.db,
-	})
 }
 
 func (cache *redisCache) Set(key string, value *entity.Employee) error {
-	client := cache.getClient()
-	json, err := json.Marshal(value)
+	d, err := json.Marshal(value)
 	if err != nil {
 		return err
 	}
-	if err := client.Set(context.Background(), key, json, cache.expire*time.Second).Err(); err != nil {
+	if err := cache.Client.Set(context.Background(), key, d, 0*time.Second).Err(); err != nil {
 		return err
 	}
 	return err
 }
 
 func (cache *redisCache) Get(key string) (*entity.Employee, error) {
-	client := cache.getClient()
-	val, err := client.Get(context.Background(), key).Result()
+	val, err := cache.Client.Get(context.Background(), key).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +46,6 @@ func (cache *redisCache) Get(key string) (*entity.Employee, error) {
 	return &employee, nil
 }
 
-func (cache *redisCache) Delete(key string) error {
-	client := cache.getClient()
-	return client.Del(context.Background(), key).Err()
+func (cache *redisCache) Del(key string) error {
+	return cache.Client.Del(context.Background(), key).Err()
 }

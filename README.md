@@ -1,11 +1,17 @@
 ### Personnel API
-An Implementation of Clean Architecture principles in REST API server using Go. 
+This is a RESTful API server implemented in Go that provides employee information of an organization. It follows the clean architecture principles which makes it testable and allows for easy integration with other frameworks, caches or databases without modifying the existing implementation. 
 
-**Benefits of Clean Architecture:**
-- Independent of frameworks.
-- Testable.
-- Independent of UI.
-- Independent of database.
+This project utilizes mux and chi as the router, and Firestore as the database to store and retrieve employee information. Redis is also used as the cache to provide fast and efficient data retrieval. 
+
+### Features:
+
+The server supports the following CRUD operations on employee information:
+
+- Create new employee
+- Retrieve employee information by ID
+- Retrieve all employees
+- Update employee information
+- Delete employee information
 
 #### Overview:
 <img src="overview.jpg" alt="Application Structure:" width="650">

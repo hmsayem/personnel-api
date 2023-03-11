@@ -6,31 +6,29 @@ import (
 	"net/http"
 )
 
-type chiRouter struct{}
+type chiRouter struct {
+	chi *chi.Mux
+}
 
 func NewChiRouter() Router {
-	return &chiRouter{}
+	return &chiRouter{chi: chi.NewRouter()}
 }
 
-var (
-	chiDispatcher = chi.NewRouter()
-)
-
-func (*chiRouter) Get(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
-	chiDispatcher.Get(uri, f)
+func (r *chiRouter) Get(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
+	r.chi.Get(uri, f)
 }
 
-func (*chiRouter) Put(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
-	chiDispatcher.Put(uri, f)
+func (r *chiRouter) Put(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
+	r.chi.Put(uri, f)
 }
 
-func (*chiRouter) Post(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
-	chiDispatcher.Post(uri, f)
+func (r *chiRouter) Post(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
+	r.chi.Post(uri, f)
 }
 
-func (*chiRouter) Serve(port string) {
+func (r *chiRouter) Serve(port string) {
 	log.Printf("Chi HTTP server is running on port %v", port)
-	err := http.ListenAndServe(port, chiDispatcher)
+	err := http.ListenAndServe(port, r.chi)
 	if err != nil {
 		log.Fatal("Error starting HTTP server: ", err)
 	}

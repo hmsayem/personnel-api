@@ -19,22 +19,21 @@ type EmployeeController interface {
 	Add(writer http.ResponseWriter, request *http.Request)
 }
 
-type controller struct{}
-
-var (
-	employeeService service.EmployeeService
-	employeeCache   cache.EmployeeCache
-)
-
-func NewEmployeeController(service service.EmployeeService, cache cache.EmployeeCache) EmployeeController {
-	employeeService = service
-	employeeCache = cache
-	return &controller{}
+type employee struct {
+	service service.EmployeeService
+	cache   cache.EmployeeCache
 }
 
-func (*controller) GetAll(writer http.ResponseWriter, request *http.Request) {
+func NewEmployeeController(service service.EmployeeService, cache cache.EmployeeCache) EmployeeController {
+	return &employee{
+		service: service,
+		cache:   cache,
+	}
+}
+
+func (e *employee) GetAll(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
-	employees, err := employeeService.GetAll()
+	employees, err := e.service.GetAll()
 	if err != nil {
 		log.Printf("failed to get employees: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -49,13 +48,13 @@ func (*controller) GetAll(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func (*controller) Get(writer http.ResponseWriter, request *http.Request) {
+func (e *employee) Get(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	id := strings.Split(request.URL.Path, "/")[2]
-	employee, err := employeeCache.Get(id)
+	employee, err := e.cache.Get(id)
 	if err != nil {
 		log.Printf("failed to get value from cache: %v", err)
-		employee, err = employeeService.Get(id)
+		employee, err = e.service.Get(id)
 		if err != nil {
 			log.Printf("failed to get employee: %v", err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -64,7 +63,7 @@ func (*controller) Get(writer http.ResponseWriter, request *http.Request) {
 			}
 			return
 		}
-		updateCache(employee)
+		e.updateCache(employee)
 	}
 
 	writer.WriteHeader(http.StatusOK)
@@ -73,7 +72,7 @@ func (*controller) Get(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func (*controller) Add(writer http.ResponseWriter, request *http.Request) {
+func (e *employee) Add(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	var employee entity.Employee
 	err := json.NewDecoder(request.Body).Decode(&employee)
@@ -85,7 +84,7 @@ func (*controller) Add(writer http.ResponseWriter, request *http.Request) {
 		}
 		return
 	}
-	err = employeeService.Validate(&employee)
+	err = e.service.Validate(&employee)
 	if err != nil {
 		log.Printf("validating data failed: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -94,7 +93,7 @@ func (*controller) Add(writer http.ResponseWriter, request *http.Request) {
 		}
 		return
 	}
-	err = employeeService.Create(&employee)
+	err = e.service.Create(&employee)
 	if err != nil {
 		log.Printf("saving data failed: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -103,14 +102,14 @@ func (*controller) Add(writer http.ResponseWriter, request *http.Request) {
 		}
 		return
 	}
-	updateCache(&employee)
+	e.updateCache(&employee)
 	writer.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(writer).Encode(employee); err != nil {
 		return
 	}
 }
 
-func (*controller) Update(writer http.ResponseWriter, request *http.Request) {
+func (e *employee) Update(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-type", "application/json")
 	var employee entity.Employee
 	err := json.NewDecoder(request.Body).Decode(&employee)
@@ -124,7 +123,7 @@ func (*controller) Update(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	id := strings.Split(request.URL.Path, "/")[2]
-	err = employeeService.Update(id, &employee)
+	err = e.service.Update(id, &employee)
 	if err != nil {
 		log.Printf("updating data failed: %v", err)
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -133,14 +132,14 @@ func (*controller) Update(writer http.ResponseWriter, request *http.Request) {
 		}
 		return
 	}
-	if err := employeeCache.Delete(id); err != nil {
+	if err := e.cache.Del(id); err != nil {
 		log.Printf("failed to delete key in cache: %v", err)
 	}
 	writer.WriteHeader(http.StatusNoContent)
 }
 
-func updateCache(employee *entity.Employee) {
-	if err := employeeCache.Set(strconv.Itoa(employee.Id), employee); err != nil {
+func (e *employee) updateCache(employee *entity.Employee) {
+	if err := e.cache.Set(strconv.Itoa(employee.Id), employee); err != nil {
 		log.Printf("failed to save key in cache: %v", err)
 	}
 }
