@@ -4,12 +4,23 @@ import (
 	"encoding/json"
 	"github.com/hmsayem/clean-architecture-implementation/cache"
 	"github.com/hmsayem/clean-architecture-implementation/entity"
-	"github.com/hmsayem/clean-architecture-implementation/errors"
 	"github.com/hmsayem/clean-architecture-implementation/service"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+)
+
+const (
+	contentType     = "Content-type"
+	applicationJSON = "application/json"
+
+	ErrFailedToGetEmployees   = "failed to get employees"
+	ErrFailedToGetEmployee    = "failed to get employee"
+	ErrFailedToAddEmployee    = "failed to add new employee"
+	ErrFailedToUpdateEmployee = "failed to update employee"
+	ErrFailedToDeleteEmployee = "failed to delete employee"
+	ErrInvalidEmployeeData    = "invalid employee data"
 )
 
 type EmployeeController interface {
@@ -20,37 +31,35 @@ type EmployeeController interface {
 	Delete(writer http.ResponseWriter, request *http.Request)
 }
 
-type employee struct {
+type controller struct {
 	service service.EmployeeService
 	cache   cache.EmployeeCache
 }
 
 func NewEmployeeController(service service.EmployeeService, cache cache.EmployeeCache) EmployeeController {
-	return &employee{
+	return &controller{
 		service: service,
 		cache:   cache,
 	}
 }
 
-func (e *employee) GetAll(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-type", "application/json")
+func (e *controller) GetAll(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set(contentType, applicationJSON)
 	employees, err := e.service.GetAll()
 	if err != nil {
 		log.Printf("failed to get employees: %v", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to get employees"}); err != nil {
-			return
-		}
+		http.Error(writer, ErrFailedToGetEmployees, http.StatusInternalServerError)
 		return
 	}
 	writer.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(writer).Encode(employees); err != nil {
+		log.Printf("failed to encode employees: %v", err)
 		return
 	}
 }
 
-func (e *employee) Get(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-type", "application/json")
+func (e *controller) Get(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set(contentType, applicationJSON)
 	id := strings.Split(request.URL.Path, "/")[2]
 	employee, err := e.cache.Get(id)
 	if err != nil {
@@ -58,10 +67,7 @@ func (e *employee) Get(writer http.ResponseWriter, request *http.Request) {
 		employee, err = e.service.Get(id)
 		if err != nil {
 			log.Printf("failed to get employee: %v", err)
-			writer.WriteHeader(http.StatusInternalServerError)
-			if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to get employee"}); err != nil {
-				return
-			}
+			http.Error(writer, ErrFailedToGetEmployee, http.StatusInternalServerError)
 			return
 		}
 		e.updateCache(employee)
@@ -69,68 +75,55 @@ func (e *employee) Get(writer http.ResponseWriter, request *http.Request) {
 
 	writer.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(writer).Encode(employee); err != nil {
+		log.Printf("failed to encode employee: %v", err)
 		return
 	}
 }
 
-func (e *employee) Add(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-type", "application/json")
+func (e *controller) Add(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set(contentType, applicationJSON)
 	var employee entity.Employee
 	err := json.NewDecoder(request.Body).Decode(&employee)
 	if err != nil {
-		log.Printf("unmarshalling data failed: %v", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to add new employee"}); err != nil {
-			return
-		}
+		log.Printf("failed to unmarshal data: %v", err)
+		http.Error(writer, ErrFailedToAddEmployee, http.StatusInternalServerError)
 		return
 	}
 	err = e.service.Validate(&employee)
 	if err != nil {
-		log.Printf("validating data failed: %v", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: err.Error()}); err != nil {
-			return
-		}
+		log.Printf("invalid employee data: %v", err)
+		http.Error(writer, ErrInvalidEmployeeData, http.StatusInternalServerError)
 		return
 	}
 	err = e.service.Create(&employee)
 	if err != nil {
-		log.Printf("saving data failed: %v", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to add new employee"}); err != nil {
-			return
-		}
+		log.Printf("failed to add employee: %v", err)
+		http.Error(writer, ErrFailedToAddEmployee, http.StatusInternalServerError)
 		return
 	}
 	e.updateCache(&employee)
 	writer.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(writer).Encode(employee); err != nil {
+		log.Printf("failed to encode employee: %v", err)
 		return
 	}
 }
 
-func (e *employee) Update(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-type", "application/json")
+func (e *controller) Update(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set(contentType, applicationJSON)
 	var employee entity.Employee
 	err := json.NewDecoder(request.Body).Decode(&employee)
 	if err != nil {
-		log.Printf("unmarshalling data failed: %v", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to update employee"}); err != nil {
-			return
-		}
+		log.Printf("failed to unmarshal data: %v", err)
+		http.Error(writer, ErrFailedToUpdateEmployee, http.StatusInternalServerError)
 		return
 	}
 
 	id := strings.Split(request.URL.Path, "/")[2]
 	err = e.service.Update(id, &employee)
 	if err != nil {
-		log.Printf("updating data failed: %v", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to update employee"}); err != nil {
-			return
-		}
+		log.Printf("failed to update employee: %v", err)
+		http.Error(writer, ErrFailedToUpdateEmployee, http.StatusInternalServerError)
 		return
 	}
 	if err := e.cache.Del(id); err != nil {
@@ -139,22 +132,19 @@ func (e *employee) Update(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusNoContent)
 }
 
-func (e *employee) updateCache(employee *entity.Employee) {
+func (e *controller) updateCache(employee *entity.Employee) {
 	if err := e.cache.Set(strconv.Itoa(employee.Id), employee); err != nil {
 		log.Printf("failed to save key in cache: %v", err)
 	}
 }
 
-func (e *employee) Delete(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-type", "application/json")
+func (e *controller) Delete(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set(contentType, applicationJSON)
 	id := strings.Split(request.URL.Path, "/")[2]
 
 	if err := e.service.Delete(id); err != nil {
 		log.Printf("failed to delete employee: %v", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to delete employee"}); err != nil {
-			return
-		}
+		http.Error(writer, ErrFailedToDeleteEmployee, http.StatusInternalServerError)
 		return
 	}
 	if err := e.cache.Del(id); err != nil {
