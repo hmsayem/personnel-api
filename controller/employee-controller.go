@@ -17,6 +17,7 @@ type EmployeeController interface {
 	Get(writer http.ResponseWriter, request *http.Request)
 	Update(writer http.ResponseWriter, request *http.Request)
 	Add(writer http.ResponseWriter, request *http.Request)
+	Delete(writer http.ResponseWriter, request *http.Request)
 }
 
 type employee struct {
@@ -142,4 +143,22 @@ func (e *employee) updateCache(employee *entity.Employee) {
 	if err := e.cache.Set(strconv.Itoa(employee.Id), employee); err != nil {
 		log.Printf("failed to save key in cache: %v", err)
 	}
+}
+
+func (e *employee) Delete(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Content-type", "application/json")
+	id := strings.Split(request.URL.Path, "/")[2]
+
+	if err := e.service.Delete(id); err != nil {
+		log.Printf("failed to delete employee: %v", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		if err := json.NewEncoder(writer).Encode(errors.ServiceError{Message: "failed to delete employee"}); err != nil {
+			return
+		}
+		return
+	}
+	if err := e.cache.Del(id); err != nil {
+		log.Printf("failed to delete key in cache: %v", err)
+	}
+	writer.WriteHeader(http.StatusNoContent)
 }

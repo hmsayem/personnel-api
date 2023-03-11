@@ -14,6 +14,7 @@ type EmployeeService interface {
 	Get(id string) (*entity.Employee, error)
 	Update(id string, employee *entity.Employee) error
 	Create(employee *entity.Employee) error
+	Delete(id string) error
 	Validate(employee *entity.Employee) error
 }
 
@@ -51,6 +52,14 @@ func (e *employee) Create(employee *entity.Employee) error {
 	rand.Seed(time.Now().UnixNano())
 	employee.Id = rand.Intn(1000)
 	return e.repo.Save(employee)
+}
+
+func (e *employee) Delete(id string) error {
+	employeeId, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+	return e.repo.Delete(employeeId)
 }
 
 func (*employee) Validate(employee *entity.Employee) error {

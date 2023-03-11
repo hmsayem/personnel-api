@@ -9,4 +9,5 @@ type EmployeeRepository interface {
 	Get(id int) (*entity.Employee, error)
 	Update(id int, employee *entity.Employee) error
 	Save(employee *entity.Employee) error
+	Delete(id int) error
 }

@@ -28,6 +28,10 @@ func (r *muxRouter) Post(uri string, f func(writer http.ResponseWriter, request 
 	r.mux.HandleFunc(uri, f).Methods("POST")
 }
 
+func (r *muxRouter) Delete(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
+	r.mux.HandleFunc(uri, f).Methods("DELETE")
+}
+
 func (r *muxRouter) Serve(port string) {
 	log.Printf("Mux HTTP server is running on port %v", port)
 	err := http.ListenAndServe(port, r.mux)

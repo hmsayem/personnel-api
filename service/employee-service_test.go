@@ -32,6 +32,10 @@ func (repo *mockRepository) Update(id int, employee *entity.Employee) error {
 	return args.Error(0)
 }
 
+func (repo *mockRepository) Delete(id int) error {
+	args := repo.Called()
+	return args.Error(0)
+}
 func TestGetAll(t *testing.T) {
 	mockRepo := new(mockRepository)
 	employees := []entity.Employee{

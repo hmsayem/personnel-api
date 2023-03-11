@@ -23,8 +23,9 @@ func main() {
 	httpRouter := router.NewChiRouter()
 
 	httpRouter.Get("/employees", employeeController.GetAll)
+	httpRouter.Post("/employees", employeeController.Add)
 	httpRouter.Get("/employees/{id}", employeeController.Get)
 	httpRouter.Put("/employees/{id}", employeeController.Update)
-	httpRouter.Post("/employees", employeeController.Add)
+	httpRouter.Delete("/employees/{id}", employeeController.Delete)
 	httpRouter.Serve(os.Getenv("SERVER_PORT"))
 }

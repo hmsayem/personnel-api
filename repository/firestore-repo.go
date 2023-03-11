@@ -67,20 +67,17 @@ func (f *firestoreRepo) Get(id int) (*entity.Employee, error) {
 }
 
 func (f *firestoreRepo) Update(id int, employee *entity.Employee) error {
-	// Construct a query to find the document that contains the employee with the given ID.
 	query := f.client.Collection(collectionName).Where("Id", "==", id).Limit(1)
 
-	// Perform the query and get the document reference.
 	docs, err := query.Documents(context.Background()).GetAll()
 	if err != nil {
 		return fmt.Errorf("querying firestore documents failed: %v", err)
 	}
 	if len(docs) == 0 {
-		return nil // Employee not found
+		return nil
 	}
 	docRef := docs[0].Ref
 
-	// Construct a slice of Firestore update structs.
 	var updates []firestore.Update
 	if employee.Name != "" {
 		updates = append(updates, firestore.Update{Path: "Name", Value: employee.Name})
@@ -95,7 +92,6 @@ func (f *firestoreRepo) Update(id int, employee *entity.Employee) error {
 		updates = append(updates, firestore.Update{Path: "Email", Value: employee.Email})
 	}
 
-	// Update the fields of the document.
 	_, err = docRef.Update(context.Background(), updates)
 	if err != nil {
 		return fmt.Errorf("updating firestore document failed: %v", err)
@@ -113,6 +109,25 @@ func (f *firestoreRepo) Save(employee *entity.Employee) error {
 	})
 	if err != nil {
 		return fmt.Errorf("creating firestore document failed: %v", err)
+	}
+	return nil
+}
+
+func (f *firestoreRepo) Delete(id int) error {
+	query := f.client.Collection(collectionName).Where("Id", "==", id).Limit(1)
+
+	docs, err := query.Documents(context.Background()).GetAll()
+	if err != nil {
+		return fmt.Errorf("querying firestore documents failed: %v", err)
+	}
+	if len(docs) == 0 {
+		return nil
+	}
+	docRef := docs[0].Ref
+
+	_, err = docRef.Delete(context.Background())
+	if err != nil {
+		return fmt.Errorf("deleting firestore document failed: %v", err)
 	}
 	return nil
 }

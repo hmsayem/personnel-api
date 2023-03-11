@@ -26,6 +26,10 @@ func (r *chiRouter) Post(uri string, f func(writer http.ResponseWriter, request 
 	r.chi.Post(uri, f)
 }
 
+func (r *chiRouter) Delete(uri string, f func(writer http.ResponseWriter, request *http.Request)) {
+	r.chi.Delete(uri, f)
+}
+
 func (r *chiRouter) Serve(port string) {
 	log.Printf("Chi HTTP server is running on port %v", port)
 	err := http.ListenAndServe(port, r.chi)
