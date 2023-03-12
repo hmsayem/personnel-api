@@ -1,4 +1,4 @@
-### Personnel API
+### Employee Hive
 This is a RESTful API server implemented in Go that provides employee information of an organization. It follows the clean architecture principles which makes it testable and allows for easy integration with other frameworks, caches or databases without modifying the existing implementation. 
 
 This project utilizes mux and chi as the router, and Firestore as the database to store and retrieve employee information. Redis is also used as the cache to provide fast and efficient data retrieval. 
